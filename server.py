@@ -14,6 +14,9 @@ import os
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from dotenv import load_dotenv, find_dotenv
 
+import sqlite3
+from flask import current_app, g
+
 # Setup Stripe python client library
 load_dotenv(find_dotenv())
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
@@ -24,9 +27,54 @@ static_dir = str(os.path.abspath(os.path.join(
 app = Flask(__name__, static_folder=static_dir,
             static_url_path="", template_folder=static_dir)
 
+# Setup Database
+DATABASE = 'subscription.db'
+
+
+def get_db():
+    if 'db' not in g:
+        g.db = sqlite3.connect(
+            DATABASE,
+            detect_types=sqlite3.PARSE_DECLTYPES
+        )
+        g.db.row_factory = sqlite3.Row
+
+    return g.db
+
+
+def close_db():
+    db = g.pop('db', None)
+
+    if db is not None:
+        db.close()
+
+
+def get_customer(email):
+    cur = get_db().cursor()
+    cur.execute("SELECT * FROM customer WHERE email=?", (email,))
+
+    rows = cur.fetchall()
+
+    if len(rows) == 0:
+        return None
+    else:
+        return rows[0]
+
+
+def insert_customer(email, customer_id):
+    db = get_db()
+    sql = ''' INSERT INTO customer(email,customer_id) VALUES(?,?) '''
+    cur = db.cursor()
+    cur.execute(sql, (email, customer_id))
+    db.commit()
+    return cur.lastrowid
+
 
 @app.route('/', methods=['GET'])
 def get_index():
+    # print(insert_customer('webdevsmart@hotmail.com', 'customer_01'))
+    # record = get_customer('webdevsmart@hotmail.com')
+    # id, email, customer_id = record
     return render_template('index.html')
 
 
@@ -40,19 +88,27 @@ def create_customer():
     # Reads application/json and returns a response
     data = json.loads(request.data)
     paymentMethod = data['payment_method']
-    print(paymentMethod)
+    print("payment method: " + paymentMethod)
+
     try:
-        # This creates a new Customer and attaches the PaymentMethod in one API call.
-        customer = stripe.Customer.create(
-            payment_method=paymentMethod,
-            email=data['email'],
-            invoice_settings={
-                'default_payment_method': paymentMethod
-            }
-        )
-        # At this point, associate the ID of the Customer object with your
-        # own internal representation of a customer, if you have one.
-        print(customer)
+        # Check if customer already exists in db
+        customer_record = get_customer(data['email'])
+        if customer_record is None:
+            # This creates a new Customer and attaches the PaymentMethod in one API call.
+            customer = stripe.Customer.create(
+                payment_method=paymentMethod,
+                email=data['email'],
+                invoice_settings={
+                    'default_payment_method': paymentMethod
+                }
+            )
+            # At this point, associate the ID of the Customer object with your
+            # own internal representation of a customer, if you have one.
+            print(customer)
+            # insert customer to database
+            insert_customer(data['email'], customer.id)
+        else:
+            customer = stripe.Customer.retrieve(customer_record[2])
 
         # Subscribe the user to the subscription created
         subscription = stripe.Subscription.create(
@@ -64,6 +120,7 @@ def create_customer():
             ],
             expand=["latest_invoice.payment_intent"]
         )
+
         return jsonify(subscription)
     except Exception as e:
         traceback.print_exc()
@@ -81,7 +138,7 @@ def getSubscription():
         return jsonify(error=str(e)), 403
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook_received():
     # You can use webhooks to receive information about asynchronous payment events.
     # For more about our webhook events check out https://stripe.com/docs/webhooks.
@@ -134,3 +191,7 @@ def webhook_received():
 
 if __name__ == '__main__':
     app.run(port=4242)
+    # get_db()
+    # print(insert_customer('webdevsmart@hotmail.com', 'customer_01'))
+    # # insert_customer('zpedia723@hotmail.com', 'customer_02')
+    # print(get_customer('webdevsmart@hotmail.com'))

@@ -296,6 +296,9 @@ a:active {
 
 /* Code block */
 .sr-callout {
+  display: flex;
+  align-items:center;
+  color: #28a745;
   background: var(--gray-offset);
   padding: 12px;
   border-radius: var(--radius);

@@ -164,7 +164,7 @@ var orderComplete = function(subscription) {
     view.classList.remove('hidden');
   });
   document.querySelector('.order-status').textContent = subscription.status;
-  document.querySelector('code').textContent = subscriptionJson;
+//  document.querySelector('code').textContent = subscriptionJson;
 };
 
 // Show a spinner on subscription submission
