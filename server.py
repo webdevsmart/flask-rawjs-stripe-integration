@@ -5,6 +5,7 @@ server.py
 Stripe Recipe.
 Python 3.6 or newer required.
 """
+import sys
 import traceback
 
 import stripe
@@ -26,6 +27,7 @@ static_dir = str(os.path.abspath(os.path.join(
     __file__, "..", os.getenv("STATIC_DIR"))))
 app = Flask(__name__, static_folder=static_dir,
             static_url_path="", template_folder=static_dir)
+app.config['DEGUG'] = True
 
 # Setup Database
 DATABASE = 'subscription.db'
@@ -195,3 +197,8 @@ if __name__ == '__main__':
     # print(insert_customer('webdevsmart@hotmail.com', 'customer_01'))
     # # insert_customer('zpedia723@hotmail.com', 'customer_02')
     # print(get_customer('webdevsmart@hotmail.com'))
+
+
+def p(*args):
+    print(args[0] % (len(args) > 1 and args[1:] or []))
+    sys.stdout.flush()
