@@ -162,13 +162,18 @@ def webhook_received():
 
         try:
             event = stripe.Webhook.construct_event(
-                payload=payload, sig_header=sig_header, secret=webhook_secret)
+                payload, sig_header, webhook_secret
+            )
             print("------------------event--------------------")
             print(event)
         except ValueError as e:
             # Invalid payload
+            print("------------------Invalid payload--------------------")
+            print("Invalid payload")
             return 'Invalid payload', 400
         except stripe.error.SignatureVerificationError as e:
+            print("------------------Invalid payload--------------------")
+            print("Invalid signature")
             # Invalid signature
             return 'Invalid signature', 400
 
