@@ -106,6 +106,7 @@ def create_customer():
             )
             # At this point, associate the ID of the Customer object with your
             # own internal representation of a customer, if you have one.
+            print("---------new customer---------")
             print(customer)
             # insert customer to database
             insert_customer(data['email'], customer.id)
@@ -140,7 +141,7 @@ def getSubscription():
         return jsonify(error=str(e)), 403
 
 
-@app.route('/webhook', methods=['GET', 'POST'])
+@app.route('/webhook', methods=['POST'])
 def webhook_received():
     print("------------Webhook called------------")
     # You can use webhooks to receive information about asynchronous payment events.
@@ -166,27 +167,35 @@ def webhook_received():
     data_object = data['object']
 
     if event_type == 'customer.created':
+        print("--------------------customer.created---------------------")
         print(data)
 
     if event_type == 'customer.updated':
+        print("---------------------customer.updated--------------------")
         print(data)
 
     if event_type == 'invoice.upcoming':
+        print("---------------------invoice.upcoming--------------------")
         print(data)
 
     if event_type == 'invoice.created':
+        print("---------------------invoice.created--------------------")
         print(data)
 
     if event_type == 'invoice.finalized':
+        print("---------------------invoice.finalized--------------------")
         print(data)
 
     if event_type == 'invoice.payment_succeeded':
+        print("----------------------invoice.payment_succeeded-------------------")
         print(data)
 
     if event_type == 'invoice.payment_failed':
+        print("--------------------invoice.payment_failed---------------------")
         print(data)
 
     if event_type == 'customer.subscription.created':
+        print("-------------------customer.subscription.created----------------------")
         print(data)
 
     return jsonify({'status': 'success'})
