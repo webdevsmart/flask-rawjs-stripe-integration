@@ -149,6 +149,7 @@ def webhook_received():
     webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
     payload = request.get_data()
     print("------------------payload--------------------")
+    print(type(payload))
     print(payload)
 
     if webhook_secret:
@@ -156,6 +157,7 @@ def webhook_received():
         sig_header = request.headers.get('Stripe_Signature', None)
         print("------------------sig_header--------------------")
         print(sig_header)
+        print(request.headers.get("Stripe-Signature", None))
 
         if not sig_header:
             return 'No Signature Header!', 400
