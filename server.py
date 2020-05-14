@@ -148,16 +148,23 @@ def webhook_received():
     # For more about our webhook events check out https://stripe.com/docs/webhooks.
     webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
     payload = request.get_data()
+    print("------------------payload--------------------")
+    print(payload)
 
     if webhook_secret:
         # Retrieve the event by verifying the signature using the raw body and secret if webhook signing is configured.
         sig_header = request.headers.get('Stripe_Signature', None)
+        print("------------------sig_header--------------------")
+        print(sig_header)
+
         if not sig_header:
             return 'No Signature Header!', 400
 
         try:
             event = stripe.Webhook.construct_event(
                 payload=payload, sig_header=sig_header, secret=webhook_secret)
+            print("------------------event--------------------")
+            print(event)
         except ValueError as e:
             # Invalid payload
             return 'Invalid payload', 400
