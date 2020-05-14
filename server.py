@@ -173,9 +173,10 @@ def webhook_received():
             print("Invalid payload")
             return 'Invalid payload', 400
         except stripe.error.SignatureVerificationError as e:
-            print("------------------Invalid payload--------------------")
-            print("Invalid signature")
+            traceback.print_exc()
             # Invalid signature
+            print("------------------Invalid signature--------------------")
+            print("Invalid signature")
             return 'Invalid signature', 400
 
     # Get the type of webhook event sent - used to check the status of PaymentIntents.
