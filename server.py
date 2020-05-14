@@ -147,24 +147,27 @@ def webhook_received():
     # You can use webhooks to receive information about asynchronous payment events.
     # For more about our webhook events check out https://stripe.com/docs/webhooks.
     webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-    request_data = json.loads(request.data)
+    payload = request.get_data()
 
     if webhook_secret:
         # Retrieve the event by verifying the signature using the raw body and secret if webhook signing is configured.
-        signature = request.headers.get('stripe-signature')
+        sig_header = request.headers.get('Stripe_Signature', None)
+        if not sig_header:
+            return 'No Signature Header!', 400
+
         try:
             event = stripe.Webhook.construct_event(
-                payload=request.data, sig_header=signature, secret=webhook_secret)
-            data = event['data']
-        except Exception as e:
-            return e
-        # Get the type of webhook event sent - used to check the status of PaymentIntents.
-        event_type = event['type']
-    else:
-        data = request_data['data']
-        event_type = request_data['type']
+                payload=payload, sig_header=sig_header, secret=webhook_secret)
+        except ValueError as e:
+            # Invalid payload
+            return 'Invalid payload', 400
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            return 'Invalid signature', 400
 
-    data_object = data['object']
+    # Get the type of webhook event sent - used to check the status of PaymentIntents.
+    event_type = event['type']
+    data = event['data']
 
     if event_type == 'customer.created':
         print("--------------------customer.created---------------------")
