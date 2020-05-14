@@ -142,6 +142,7 @@ def getSubscription():
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook_received():
+    print("------------Webhook called------------")
     # You can use webhooks to receive information about asynchronous payment events.
     # For more about our webhook events check out https://stripe.com/docs/webhooks.
     webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
