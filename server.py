@@ -147,13 +147,13 @@ def webhook_received():
     # You can use webhooks to receive information about asynchronous payment events.
     # For more about our webhook events check out https://stripe.com/docs/webhooks.
     webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-    payload = request.get_data()
+    payload = request.body
     print("------------------payload--------------------")
     print(payload)
 
     if webhook_secret:
         # Retrieve the event by verifying the signature using the raw body and secret if webhook signing is configured.
-        sig_header = request.headers.get('Stripe_Signature', None)
+        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
         print("------------------sig_header--------------------")
         print(sig_header)
 
